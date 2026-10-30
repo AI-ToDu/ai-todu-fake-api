@@ -1,0 +1,721 @@
+{
+  "areas": {
+    "identity": [
+      "tenants",
+      "users",
+      "roles",
+      "permissions",
+      "role_permissions",
+      "sessions",
+      "employees"
+    ],
+    "inventory": [
+      "products",
+      "categories",
+      "units",
+      "warehouses",
+      "locations",
+      "product_variants",
+      "stock_lots",
+      "stock_movements"
+    ],
+    "procurement": [
+      "suppliers",
+      "purchase_orders",
+      "purchase_order_lines",
+      "receipts",
+      "receipt_lines"
+    ],
+    "sales": [
+      "customers",
+      "sales",
+      "sale_lines",
+      "payments",
+      "sales_receipts"
+    ],
+    "logistics": [
+      "drivers",
+      "vehicles",
+      "dispatches",
+      "dispatch_lines",
+      "dispatch_stops",
+      "delivery_attempts",
+      "dispatch_incidents"
+    ],
+    "returns": [
+      "returns",
+      "return_lines"
+    ],
+    "notifications": [
+      "notifications"
+    ]
+  },
+  "tables": {
+    "tenants": {
+      "columns": {
+        "name": "TEXT NOT NULL",
+        "created_at": "TEXT NOT NULL"
+      },
+      "references": {},
+      "checks": [],
+      "unique": [],
+      "tenant": false
+    },
+    "roles": {
+      "columns": {
+        "name": "TEXT NOT NULL"
+      },
+      "references": {},
+      "checks": [],
+      "unique": [
+        [
+          "name"
+        ]
+      ],
+      "tenant": false
+    },
+    "permissions": {
+      "columns": {
+        "name": "TEXT NOT NULL"
+      },
+      "references": {},
+      "checks": [],
+      "unique": [
+        [
+          "name"
+        ]
+      ],
+      "tenant": false
+    },
+    "role_permissions": {
+      "columns": {
+        "role_id": "TEXT NOT NULL",
+        "permission_id": "TEXT NOT NULL"
+      },
+      "references": {
+        "role_id": "roles",
+        "permission_id": "permissions"
+      },
+      "checks": [],
+      "unique": [
+        [
+          "role_id",
+          "permission_id"
+        ]
+      ],
+      "tenant": false
+    },
+    "users": {
+      "columns": {
+        "email": "TEXT NOT NULL",
+        "full_name": "TEXT NOT NULL",
+        "password_hash": "TEXT",
+        "role_id": "TEXT NOT NULL",
+        "status": "TEXT NOT NULL DEFAULT 'INVITED'"
+      },
+      "references": {
+        "role_id": "roles"
+      },
+      "checks": [],
+      "unique": [
+        [
+          "email"
+        ]
+      ],
+      "tenant": true
+    },
+    "sessions": {
+      "columns": {
+        "user_id": "TEXT NOT NULL",
+        "token_hash": "TEXT NOT NULL",
+        "expires_at": "TEXT NOT NULL"
+      },
+      "references": {
+        "user_id": "users"
+      },
+      "checks": [],
+      "unique": [
+        [
+          "token_hash"
+        ]
+      ],
+      "tenant": true
+    },
+    "employees": {
+      "columns": {
+        "user_id": "TEXT NOT NULL",
+        "job_title": "TEXT",
+        "status": "TEXT NOT NULL DEFAULT 'ACTIVE'"
+      },
+      "references": {
+        "user_id": "users"
+      },
+      "checks": [],
+      "unique": [
+        [
+          "tenant_id",
+          "user_id"
+        ]
+      ],
+      "tenant": true
+    },
+    "categories": {
+      "columns": {
+        "name": "TEXT NOT NULL"
+      },
+      "references": {},
+      "checks": [],
+      "unique": [
+        [
+          "tenant_id",
+          "name"
+        ]
+      ],
+      "tenant": true
+    },
+    "units": {
+      "columns": {
+        "code": "TEXT NOT NULL",
+        "name": "TEXT NOT NULL"
+      },
+      "references": {},
+      "checks": [],
+      "unique": [
+        [
+          "tenant_id",
+          "code"
+        ]
+      ],
+      "tenant": true
+    },
+    "warehouses": {
+      "columns": {
+        "name": "TEXT NOT NULL",
+        "address": "TEXT"
+      },
+      "references": {},
+      "checks": [],
+      "unique": [
+        [
+          "tenant_id",
+          "name"
+        ]
+      ],
+      "tenant": true
+    },
+    "locations": {
+      "columns": {
+        "warehouse_id": "TEXT NOT NULL",
+        "code": "TEXT NOT NULL"
+      },
+      "references": {
+        "warehouse_id": "warehouses"
+      },
+      "checks": [],
+      "unique": [
+        [
+          "tenant_id",
+          "warehouse_id",
+          "code"
+        ]
+      ],
+      "tenant": true
+    },
+    "products": {
+      "columns": {
+        "sku": "TEXT NOT NULL",
+        "name": "TEXT NOT NULL",
+        "quantity": "INTEGER NOT NULL DEFAULT 0",
+        "price_cents": "BIGINT NOT NULL",
+        "cost_cents": "BIGINT NOT NULL",
+        "minimum_stock": "INTEGER NOT NULL DEFAULT 0",
+        "conservation": "TEXT NOT NULL DEFAULT 'GOOD'",
+        "category_id": "TEXT",
+        "unit_id": "TEXT",
+        "location_id": "TEXT"
+      },
+      "references": {
+        "category_id": "categories",
+        "unit_id": "units",
+        "location_id": "locations"
+      },
+      "checks": [
+        "quantity >= 0",
+        "price_cents >= 0",
+        "cost_cents >= 0",
+        "minimum_stock >= 0",
+        "conservation IN ('GOOD','QUARANTINED','DAMAGED')"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "sku"
+        ]
+      ],
+      "tenant": true
+    },
+    "product_variants": {
+      "columns": {
+        "product_id": "TEXT NOT NULL",
+        "sku": "TEXT NOT NULL",
+        "attributes_json": "TEXT NOT NULL"
+      },
+      "references": {
+        "product_id": "products"
+      },
+      "checks": [],
+      "unique": [
+        [
+          "tenant_id",
+          "sku"
+        ]
+      ],
+      "tenant": true
+    },
+    "stock_lots": {
+      "columns": {
+        "product_id": "TEXT NOT NULL",
+        "location_id": "TEXT",
+        "lot_number": "TEXT NOT NULL",
+        "expires_on": "TEXT",
+        "quantity": "INTEGER NOT NULL DEFAULT 0"
+      },
+      "references": {
+        "product_id": "products",
+        "location_id": "locations"
+      },
+      "checks": [
+        "quantity >= 0"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "product_id",
+          "lot_number"
+        ]
+      ],
+      "tenant": true
+    },
+    "stock_movements": {
+      "columns": {
+        "product_id": "TEXT NOT NULL",
+        "lot_id": "TEXT",
+        "user_id": "TEXT NOT NULL",
+        "delta": "INTEGER NOT NULL",
+        "movement_type": "TEXT NOT NULL",
+        "reason": "TEXT NOT NULL",
+        "unit_cost_cents": "BIGINT",
+        "created_at": "TEXT NOT NULL"
+      },
+      "references": {
+        "product_id": "products",
+        "lot_id": "stock_lots",
+        "user_id": "users"
+      },
+      "checks": [
+        "delta <> 0"
+      ],
+      "unique": [],
+      "tenant": true
+    },
+    "suppliers": {
+      "columns": {
+        "name": "TEXT NOT NULL",
+        "tax_id": "TEXT",
+        "contact": "TEXT"
+      },
+      "references": {},
+      "checks": [],
+      "unique": [
+        [
+          "tenant_id",
+          "name"
+        ]
+      ],
+      "tenant": true
+    },
+    "purchase_orders": {
+      "columns": {
+        "supplier_id": "TEXT NOT NULL",
+        "number": "TEXT NOT NULL",
+        "status": "TEXT NOT NULL DEFAULT 'OPEN'",
+        "created_at": "TEXT NOT NULL"
+      },
+      "references": {
+        "supplier_id": "suppliers"
+      },
+      "checks": [
+        "status IN ('OPEN','PARTIAL','RECEIVED','CANCELLED')"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "number"
+        ]
+      ],
+      "tenant": true
+    },
+    "purchase_order_lines": {
+      "columns": {
+        "purchase_order_id": "TEXT NOT NULL",
+        "product_id": "TEXT NOT NULL",
+        "quantity": "INTEGER NOT NULL",
+        "received": "INTEGER NOT NULL DEFAULT 0",
+        "cost_cents": "BIGINT NOT NULL"
+      },
+      "references": {
+        "purchase_order_id": "purchase_orders",
+        "product_id": "products"
+      },
+      "checks": [
+        "quantity > 0",
+        "received >= 0 AND received <= quantity",
+        "cost_cents >= 0"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "purchase_order_id",
+          "product_id"
+        ]
+      ],
+      "tenant": true
+    },
+    "receipts": {
+      "columns": {
+        "purchase_order_id": "TEXT NOT NULL",
+        "user_id": "TEXT NOT NULL",
+        "created_at": "TEXT NOT NULL"
+      },
+      "references": {
+        "purchase_order_id": "purchase_orders",
+        "user_id": "users"
+      },
+      "checks": [],
+      "unique": [],
+      "tenant": true
+    },
+    "receipt_lines": {
+      "columns": {
+        "receipt_id": "TEXT NOT NULL",
+        "purchase_order_line_id": "TEXT NOT NULL",
+        "quantity": "INTEGER NOT NULL"
+      },
+      "references": {
+        "receipt_id": "receipts",
+        "purchase_order_line_id": "purchase_order_lines"
+      },
+      "checks": [
+        "quantity > 0"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "receipt_id",
+          "purchase_order_line_id"
+        ]
+      ],
+      "tenant": true
+    },
+    "customers": {
+      "columns": {
+        "name": "TEXT NOT NULL",
+        "email": "TEXT",
+        "tax_id": "TEXT"
+      },
+      "references": {},
+      "checks": [],
+      "unique": [],
+      "tenant": true
+    },
+    "sales": {
+      "columns": {
+        "customer_id": "TEXT",
+        "user_id": "TEXT NOT NULL",
+        "number": "TEXT NOT NULL",
+        "status": "TEXT NOT NULL DEFAULT 'CONFIRMED'",
+        "total_cents": "BIGINT NOT NULL",
+        "created_at": "TEXT NOT NULL",
+        "cancelled_at": "TEXT",
+        "cancellation_reason": "TEXT"
+      },
+      "references": {
+        "customer_id": "customers",
+        "user_id": "users"
+      },
+      "checks": [
+        "total_cents >= 0",
+        "status IN ('CONFIRMED','CANCELLED')"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "number"
+        ]
+      ],
+      "tenant": true
+    },
+    "sale_lines": {
+      "columns": {
+        "sale_id": "TEXT NOT NULL",
+        "product_id": "TEXT NOT NULL",
+        "product_name": "TEXT NOT NULL",
+        "quantity": "INTEGER NOT NULL",
+        "price_cents": "BIGINT NOT NULL",
+        "cost_cents": "BIGINT NOT NULL"
+      },
+      "references": {
+        "sale_id": "sales",
+        "product_id": "products"
+      },
+      "checks": [
+        "quantity > 0",
+        "price_cents >= 0",
+        "cost_cents >= 0"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "sale_id",
+          "product_id"
+        ]
+      ],
+      "tenant": true
+    },
+    "payments": {
+      "columns": {
+        "sale_id": "TEXT NOT NULL",
+        "amount_cents": "BIGINT NOT NULL",
+        "method": "TEXT NOT NULL",
+        "created_at": "TEXT NOT NULL"
+      },
+      "references": {
+        "sale_id": "sales"
+      },
+      "checks": [
+        "amount_cents >= 0"
+      ],
+      "unique": [],
+      "tenant": true
+    },
+    "sales_receipts": {
+      "columns": {
+        "sale_id": "TEXT NOT NULL",
+        "number": "TEXT NOT NULL",
+        "total_cents": "BIGINT NOT NULL",
+        "fiscal": "SMALLINT NOT NULL DEFAULT 0",
+        "created_at": "TEXT NOT NULL"
+      },
+      "references": {
+        "sale_id": "sales"
+      },
+      "checks": [
+        "total_cents >= 0",
+        "fiscal IN (0,1)"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "number"
+        ],
+        [
+          "tenant_id",
+          "sale_id"
+        ]
+      ],
+      "tenant": true
+    },
+    "drivers": {
+      "columns": {
+        "name": "TEXT NOT NULL",
+        "license": "TEXT NOT NULL"
+      },
+      "references": {},
+      "checks": [],
+      "unique": [
+        [
+          "tenant_id",
+          "license"
+        ]
+      ],
+      "tenant": true
+    },
+    "vehicles": {
+      "columns": {
+        "name": "TEXT NOT NULL",
+        "plate": "TEXT NOT NULL",
+        "capacity_kg": "NUMERIC"
+      },
+      "references": {},
+      "checks": [
+        "capacity_kg IS NULL OR capacity_kg > 0"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "plate"
+        ]
+      ],
+      "tenant": true
+    },
+    "dispatches": {
+      "columns": {
+        "driver_id": "TEXT NOT NULL",
+        "vehicle_id": "TEXT NOT NULL",
+        "number": "TEXT NOT NULL",
+        "destination": "TEXT NOT NULL",
+        "status": "TEXT NOT NULL DEFAULT 'PENDING'",
+        "created_at": "TEXT NOT NULL"
+      },
+      "references": {
+        "driver_id": "drivers",
+        "vehicle_id": "vehicles"
+      },
+      "checks": [
+        "status IN ('PENDING','IN_TRANSIT','DELIVERED')"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "number"
+        ]
+      ],
+      "tenant": true
+    },
+    "dispatch_lines": {
+      "columns": {
+        "dispatch_id": "TEXT NOT NULL",
+        "sale_id": "TEXT NOT NULL",
+        "sale_line_id": "TEXT NOT NULL",
+        "product_id": "TEXT NOT NULL",
+        "quantity": "INTEGER NOT NULL"
+      },
+      "references": {
+        "dispatch_id": "dispatches",
+        "sale_id": "sales",
+        "sale_line_id": "sale_lines",
+        "product_id": "products"
+      },
+      "checks": [
+        "quantity > 0"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "sale_line_id"
+        ]
+      ],
+      "tenant": true
+    },
+    "dispatch_stops": {
+      "columns": {
+        "dispatch_id": "TEXT NOT NULL",
+        "sequence": "INTEGER NOT NULL",
+        "address": "TEXT NOT NULL"
+      },
+      "references": {
+        "dispatch_id": "dispatches"
+      },
+      "checks": [
+        "sequence > 0"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "dispatch_id",
+          "sequence"
+        ]
+      ],
+      "tenant": true
+    },
+    "delivery_attempts": {
+      "columns": {
+        "dispatch_id": "TEXT NOT NULL",
+        "stop_id": "TEXT",
+        "recipient": "TEXT",
+        "status": "TEXT NOT NULL",
+        "created_at": "TEXT NOT NULL"
+      },
+      "references": {
+        "dispatch_id": "dispatches",
+        "stop_id": "dispatch_stops"
+      },
+      "checks": [],
+      "unique": [],
+      "tenant": true
+    },
+    "dispatch_incidents": {
+      "columns": {
+        "dispatch_id": "TEXT NOT NULL",
+        "description": "TEXT NOT NULL",
+        "created_at": "TEXT NOT NULL",
+        "resolved_at": "TEXT"
+      },
+      "references": {
+        "dispatch_id": "dispatches"
+      },
+      "checks": [],
+      "unique": [],
+      "tenant": true
+    },
+    "returns": {
+      "columns": {
+        "sale_id": "TEXT NOT NULL",
+        "reason": "TEXT NOT NULL",
+        "created_at": "TEXT NOT NULL"
+      },
+      "references": {
+        "sale_id": "sales"
+      },
+      "checks": [],
+      "unique": [],
+      "tenant": true
+    },
+    "return_lines": {
+      "columns": {
+        "return_id": "TEXT NOT NULL",
+        "sale_line_id": "TEXT NOT NULL",
+        "product_id": "TEXT NOT NULL",
+        "quantity": "INTEGER NOT NULL",
+        "amount_cents": "BIGINT NOT NULL",
+        "disposition": "TEXT NOT NULL"
+      },
+      "references": {
+        "return_id": "returns",
+        "sale_line_id": "sale_lines",
+        "product_id": "products"
+      },
+      "checks": [
+        "quantity > 0",
+        "amount_cents >= 0",
+        "disposition IN ('RESTOCK','LOSS')"
+      ],
+      "unique": [
+        [
+          "tenant_id",
+          "return_id",
+          "sale_line_id"
+        ]
+      ],
+      "tenant": true
+    },
+    "notifications": {
+      "columns": {
+        "user_id": "TEXT",
+        "product_id": "TEXT",
+        "notification_type": "TEXT NOT NULL",
+        "is_read": "SMALLINT NOT NULL DEFAULT 0",
+        "created_at": "TEXT NOT NULL"
+      },
+      "references": {
+        "user_id": "users",
+        "product_id": "products"
+      },
+      "checks": [
+        "is_read IN (0,1)"
+      ],
+      "unique": [],
+      "tenant": true
+    }
+  }
+}
