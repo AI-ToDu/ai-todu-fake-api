@@ -88,22 +88,24 @@ El frontend registra el origen del motor en `mock-provenance.json`. Al cambiar e
 npm run mock:sync -- ../ai-todu-fake-api
 ```
 
-Después ejecutar sus pruebas y compilación. El [diseño de 35 tablas](database/schema.sql) es una referencia de migración, no el adaptador JSON. Consultar [arquitectura y cobertura](https://github.com/AI-ToDu/ai-todu-report/blob/fix/tb1-readiness/design/architecture.md).
+Después ejecutar sus pruebas y compilación. El [diseño de 35 tablas](database/schema.sql) es una referencia de migración, no el adaptador JSON. Consultar [arquitectura y cobertura](https://github.com/AI-ToDu/ai-todu-report/blob/main/design/architecture.md).
 
 En Pages, `/api/v1` se intercepta en el navegador; no es un backend remoto invocable con curl. IndexedDB conserva datos por navegador/origen y no sincroniza dispositivos. No hay pagos reales, emisión fiscal, correos de recuperación, invitaciones, suscripciones, optimización de rutas ni seguridad productiva implementados.
 
 ### Ramas y Revisión
 
-`fix/tb1-readiness` contiene la implementación y documentación revisables. Las ramas `main` y `develop` parten de la inicialización del paquete; la integración se revisa mediante PR. El historial de autoría y los registros históricos del equipo se conservan.
+La revisión TB1 está integrada en `main` y versionada como `v0.2.0`. Las siguientes correcciones se revisan en ramas `fix/...`; `develop` conserva la línea de integración. El historial de autoría y los registros históricos del equipo se conservan.
 
 ---
 
+El backend Java de AV2 está en [ai-todu-api](https://github.com/AI-ToDu/ai-todu-api). Su Transactional Outbox Pattern, PostgreSQL y contratos HTTP pertenecen al servidor. Esta Fake API conserva el contrato de demostración; sus efectos locales no acreditan entrega durable de mensajes en producción.
+
 ## 🔗 Ecosistema del Proyecto
 
-* **[Landing Page](https://github.com/AI-ToDu/ai-todu-platform/tree/fix/tb1-readiness):** presentación del producto y acceso a la demo.
-* **[Frontend](https://github.com/AI-ToDu/ai-todu-webapp/tree/fix/tb1-readiness):** espacio de trabajo Angular.
-* **[Fake REST API](https://github.com/AI-ToDu/ai-todu-fake-api/tree/fix/tb1-readiness):** motor canónico de demostración y contrato OpenAPI.
-* **[Informe](https://github.com/AI-ToDu/ai-todu-report/tree/fix/tb1-readiness):** requisitos, arquitectura, diseño de datos y evidencias.
+* **[Landing Page](https://github.com/AI-ToDu/ai-todu-platform/tree/develop):** presentación del producto y acceso a la demo.
+* **[Frontend](https://github.com/AI-ToDu/ai-todu-webapp/tree/main):** espacio de trabajo Angular.
+* **[Fake REST API](https://github.com/AI-ToDu/ai-todu-fake-api/tree/main):** motor canónico de demostración y contrato OpenAPI.
+* **[Informe](https://github.com/AI-ToDu/ai-todu-report/tree/main):** requisitos, arquitectura, diseño de datos y evidencias.
 
 ---
 
